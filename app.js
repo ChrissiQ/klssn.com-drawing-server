@@ -4,6 +4,7 @@ import socketio from'socket.io';
 import mongoose from 'mongoose';
 import { development as config } from './config';
 import server from './lib/server';
+import routes from './lib/routes';
 
 mongoose.connect(config.db);
 const db = mongoose.connection;
@@ -12,17 +13,10 @@ db.on('error', err => console.error(`Connection error: ${err}`));
 db.on('disconnected', () => mongoose.connect(config.db));
 db.on('open', () => {
 
-  let BlockSchema = new mongoose.Schema({
-    x: {type : Number},
-    y: {type : Number},
-    h: {type : Number},
-    createdAt: {type : Date, default : Date.now}
-  });
-
-  mongoose.model('Block', BlockSchema);
+  require('./lib/models/block')
 
   let Block = mongoose.model('Block');
-  var io = socketio.listen(server.server);
+  let io = socketio.listen(server.server);
 
   io.on('connection', socket => {
     socket.on('newBlock', data => {
@@ -42,3 +36,5 @@ db.on('open', () => {
     });
   });
 });
+
+routes(server);
